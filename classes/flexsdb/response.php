@@ -7,7 +7,7 @@ class FlexSDB_Response {
 	public $date = 0;
 	public $total_time = 0;
 	public $size = '0 B';
-	public $single = true;
+	public $single = false;
 	public $NextToken;
 	public $has_next = false;
 	public $is_empty = true;
@@ -15,49 +15,61 @@ class FlexSDB_Response {
 	public $BoxUsage;
 	public $error_msg;
 	public $error_code;
-	public $identifier;
-	public $contents = array();
+	public $body = array();
+	private $longtexts = array();
 		
-	public function __construct(ResponseCore $obj, $single = true){
+	public function __construct(ResponseCore $obj, $single = false){
 		
-		$this->identifier = text::random('alnum', 32);
 		$this->status = $obj->status;
 		$this->date = strtotime($obj->header['date']);
 		$this->total_time = $obj->header['_info']['total_time'];
-		$this->size = FlexSDB::bytesConvert($obj->header['_info']['size_download']);
+		$this->size = FlexSDB_Strings::bytesConvert($obj->header['_info']['size_download']);
 		$this->single = $single;
 		
+		// if status is OK
 		if($this->status === 200){
 			
-			$content = $obj->body->SelectResult->Item;
-			$this->NextToken = isset($obj->SelectResult->NextToken) ? $obj->SelectResult->NextToken : NULL;
-			$this->has_next = $this->NextToken !== NULL ? true : false; 
+			if(isset($obj->body->SelectResult->Item)){
 			
-			echo Kohana::debug(count($content));
-						
-			if(count($content) > 1){
+				$content = $obj->body->SelectResult->Item;
+				$this->NextToken = isset($obj->SelectResult->NextToken) ? $obj->SelectResult->NextToken : NULL;
+				$this->has_next = $this->NextToken !== NULL ? true : false; 
+			
+				// if there are multiple items			
+				if(count($content) > 1){
 				
-				echo Kohana::debug('is_array');
+					// loop through each item and add to contents
+					foreach($content as $item){
+						$this->add_item($item);
+					}
 				
-				foreach($content as $item){
-					
-					$this->add_item($item);
+				// single item result
+				}elseif(count($content) === 1){
+				
+					$this->add_item($content);
+				}
+			
+				// check if contents is empty
+				$this->is_empty = empty($this->body) ?: false;
+			
+				// if single is true only return attributes of first item
+				if($single AND !$this->is_empty AND count($content) == 1){
+					$this->body = reset($this->body);
 				}
 				
-				// echo Kohana::debug($this->contents);
+			}elseif(isset($obj->body->ListDomainsResult->DomainName)){
 				
-			}elseif(count($content) === 1){
+				$domains = $obj->body->ListDomainsResult->DomainName;
 				
-				$this->add_item($content);
+				if(count($domains) > 0){
+					
+					foreach ($domains as $domain){
+						
+						$this->body[] = (string) $domain;
+					}
+					
+				}
 				
-				echo Kohana::debug('is_string');
-				
-			}
-			
-			$this->is_empty = empty($this->contents) ?: false;
-			
-			if($single AND !$this->is_empty){
-				$this->contents = reset($this->contents);
 			}
 			
 			$this->RequestId = (string) $obj->body->ResponseMetadata->RequestId;
@@ -75,49 +87,88 @@ class FlexSDB_Response {
 			
 		}
 		
-		
+		// don't need longtexts anymore
+		unset($this->longtexts);
 	}
 	
 	public function add_item(SimpleXMLElement $item){
 		
 		$itemName = (string) $item->Name;
 		
+		// if item has multiple attributes
 		if(count($item->Attribute) > 1){
 			
 			$attributes = $item->Attribute;
 			
+			// loop through each attribute
 			foreach($attributes as $attribute){
 				
 				$this->add_attribute($itemName, $attribute);				
 			}
 			
+		// if item has single attribute
 		}elseif(count($item->Attribute) === 1){
 			
 			$this->add_attribute($itemName, $item->Attribute);
+		}
+		
+		// check if longtexts fields match the sum_check, implode them and update contents
+		foreach($this->longtexts as $long_itemName => $long_item){
+			
+			foreach ($long_item as $long_key => $long_field){
+				
+				$sum_check = $long_field['sum_check'];
+			
+				$i2 = 0; for ($i = 0; $i < count($long_field['strings']); $i ++){ $i2 = $i2 +$i;}
+				
+				if($sum_check === $i2){
+					
+					$this->body[$long_itemName][$long_key] = FlexSDB_Strings::implode($long_field['strings']);
+				}
+				
+			}
 			
 		}
+		
 		
 	}
 	
 	public function add_attribute($itemName, SimpleXMLElement $attribute){
 		
 		$key = (string) $attribute->Name;
-		$value = FlexSDB::decode_val($attribute->Value, $key, $this->identifier);
+		$value = FlexSDB_Strings::decode_val($attribute->Value); // converts numeric values to floats and simple xml to strings
 		
-		if(!isset($this->contents[$itemName][$key])){
+		// check for longtext format
+		if(preg_match('/^([0-9]) (.*)/', $value, $matches) AND isset($matches[0])){
 			
-			$this->contents[$itemName][$key] = $value;
-			
-		}else{
-			
-			if(is_array($this->contents[$itemName][$key])){
+			if(isset($this->longtexts[$itemName][$key]['sum_check'])){
 				
-				$this->contents[$itemName][$key][] = $value;
+				$this->longtexts[$itemName][$key]['sum_check'] += (int) $matches[1];
 				
 			}else{
 				
-				$pre_value = $this->contents[$itemName][$key];
-				$this->contents[$itemName][$key] = array($pre_value, $value);
+				$this->longtexts[$itemName][$key]['sum_check'] = (int) $matches[1];
+			}
+			
+			$this->longtexts[$itemName][$key]['strings'][] = $matches[0];
+		}
+		
+		// add value to key if there aren't any key-value pairs (yet)
+		if(!isset($this->body[$itemName][$key])){
+			
+			$this->body[$itemName][$key] = $value;
+			
+		// convert values to array if there already exists a key-value pair
+		}else{
+			
+			if(is_array($this->body[$itemName][$key])){
+				
+				$this->body[$itemName][$key][] = $value;
+				
+			}else{
+				
+				$pre_value = $this->body[$itemName][$key];
+				$this->body[$itemName][$key] = array($pre_value, $value);
 			}
 		}
 		

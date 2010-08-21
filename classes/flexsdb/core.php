@@ -2,28 +2,154 @@
 
 abstract class FlexSDB_Core{
 	
-	public static $longtext;
-	
-	public static function bytesConvert($bytes){
-	    $ext = array('B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB');
-	    $unitCount = 0;
-	    for(; $bytes > 1024; $unitCount++) $bytes /= 1024;
-	    return round($bytes, 2) ." ". $ext[$unitCount];
+	public static function get_items($domain, $where = NULL, $cache_time = NULL){
+		
+		
+		
 	}
 	
-	public static function decode_val(SimpleXMLElement $value){
+	public static function create_domain($domain){
 		
-		$value = strval($value);
+		$request = Amazon::SDB()->create_domain($domain, $curl = null);
 		
-		if(is_numeric($value)){
-			
-			return (double) $value;
+		// echo Kohana::debug($request);
+		
+		$response = new FlexSDB_Response($request);
+		
+		echo Kohana::debug($response);
+		
+	}
+	
+	public static function list_domains(){
 
-		}else{
-			
-			return $value;
-		}
+		$opt = array();
+		// $opt['MaxNumberOfDomains'] = 100; // 1 to 100
+		// $opt['NextToken'] = ''; // optional
+		// $opt['returnCurlHandle'] = false; 
+
+		$request = Amazon::SDB()->list_domains($opt);
+		
+		echo Kohana::debug($request);
+		
+		$response = new FlexSDB_Response($request);
+		
+		echo Kohana::debug($response);
 		
 	}
+		
+	public function action_text(){
+		
+		// GET
+			
+			// shortcut for single item with itemName(); ID is shortcut for itemName(); // NOTE to self: should use get_attributes, it's faster
+			$item = FlexDB::get_item('products', $item_id);
+			
+			// shortcut for single item icm with get params; effectively is the same as get limit 1
+			$item = FlexSDB::get_item('products', array('time' => 4));
+		
+			// shortcut for multiple items
+			$item = FlexSDB::get_item('products', array('id' => 4));
+		
+			// shortcuts with caching
+			$item = FlexSDB::get_item('products', array('id' => 4), $cache_time = 60);
+			$item = FlexSDB::get_items('products', array('id' => 4), $cache_time = 60);
+		
+			// advanced get query
+			$items = FlexSDB::get('products')
+				->and_where('price', '>', 5)
+				->or_where('lat', 'like', '%ab')
+				->and_where_group('or', array(array('price', '>', '4'), array('date', '!=', 'today')))
+				->or_where_group('or', array(array('price', '>', '4'), array('date', '!=', 'today')))
+				->orderby('time', 'desc')
+				->between('year', array(1999, 2000))
+				->in('year', array(1999, 2000, 2001)) 
+				->every('keyword', 'like', '%book%') // *all* defined keywords must have this property 
+				->cache(60) // minutes
+				->limit(1)
+				->all() // returns ALL items; might time out your resources!
+				->all(5) // returns 5 iterations of NextToken
+				->all($items->NextToken) // get specific $NextToken results
+				->delete() // delete all items that get returned
+				->execute();
+		
+		// OUTPUT
+		
+			// Output values (MAGIC GET)
+			$name = $item->name;
+			
+			// Please note that output from GET always result in FlexSDB_Item objects // Multiple items are contained in a FlexSDB_Items object
+	
+			// Item as array
+			$item->array();
+			
+			// Items as array
+			$items->array();
+			
+			// Get count from request
+			$items->count();
+		
+		// EDIT
+		
+			// Modify items (MAGIC SET)
+			$item->name = 'Melvin';
+		
+			// Save state
+			$item->save();
+		
+		// INSERT
+		
+			// Insert item (which domain?)
+			$item = new FlexSDB_Item('products');
+		
+			// Fill single property
+			$item->name = 'Melvin';
+			
+			// Fill array property
+			$item->tags = array('tag1', 'tag2', 'tag3');
+		
+			// Give ID:
+			$item->ID = random::text(5);
+		
+			// Save item:
+			$item->save();
+			
+			// BATCH insert items
+			FlexSDB::insert(array($item1, $item2, $item3));
+		
+		// DELETE
+		
+			// Delete property
+			$item->delete('name');
+		
+			// Delete properties
+			$item->delete(array('name', 'time'));
+		
+			// Delete entire item from DB
+			$item->delete();
+		
+			// Delete multiple items from DB
+			FlexSDB::delete(array($item1, $item2, $item3));
+			
+			FlexSDB::delete_item('products', $ID);
+			FlexSDB::delete_items('products', array($ID1, $ID2));
+		
+		// Create DOMAIN
+			
+			FlexSDB::create_domain('products');
+			
+		// Delete DOMAIN
+		
+			FlexSDB::delete_domain('orders');
+			
+		// Get info DOMAIN
+		
+			FlexSDB::info_domain('products');
+			
+		// Get info DOMAINS
+		
+			FlexSDB::info_domains();
+					
+	}
+	
 	
 }
