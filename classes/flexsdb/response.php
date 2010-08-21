@@ -91,7 +91,7 @@ class FlexSDB_Response {
 		unset($this->longtexts);
 	}
 	
-	public function add_item(SimpleXMLElement $item){
+	private function add_item(SimpleXMLElement $item){
 		
 		$itemName = (string) $item->Name;
 		
@@ -133,7 +133,7 @@ class FlexSDB_Response {
 		
 	}
 	
-	public function add_attribute($itemName, SimpleXMLElement $attribute){
+	private function add_attribute($itemName, SimpleXMLElement $attribute){
 		
 		$key = (string) $attribute->Name;
 		$value = FlexSDB_Strings::decode_val($attribute->Value); // converts numeric values to floats and simple xml to strings
