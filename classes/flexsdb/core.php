@@ -2,11 +2,10 @@
 
 abstract class FlexSDB_Core{
 	
-	public static function get_items($domain, $where = NULL, $cache_time = NULL){
+	public static function get($domain){
 		
-		
-		
-	}
+		return new FlexSDB_Query($domain);
+	}	
 	
 	public static function create_domain($domain){
 		
@@ -23,7 +22,7 @@ abstract class FlexSDB_Core{
 	public static function list_domains(){
 
 		$opt = array();
-		// $opt['MaxNumberOfDomains'] = 100; // 1 to 100
+		$opt['MaxNumberOfDomains'] = 2; // 1 to 100
 		// $opt['NextToken'] = ''; // optional
 		// $opt['returnCurlHandle'] = false; 
 
@@ -34,6 +33,13 @@ abstract class FlexSDB_Core{
 		$response = new FlexSDB_Response($request);
 		
 		echo Kohana::debug($response);
+		
+	}
+	
+	
+	public static function where($field, $operator, $value){
+		
+		return "`{$field}` {$operator} '{$value}'";
 		
 	}
 		
@@ -58,8 +64,8 @@ abstract class FlexSDB_Core{
 			$items = FlexSDB::get('products')
 				->and_where('price', '>', 5)
 				->or_where('lat', 'like', '%ab')
-				->and_where_group('or', array(array('price', '>', '4'), array('date', '!=', 'today')))
-				->or_where_group('or', array(array('price', '>', '4'), array('date', '!=', 'today')))
+				->and_wheres(array(FlexSDB::where('price', '>', '4'), FlexSDB::where('date', '!=', 'today')))
+				->or_wheres(array(FlexSDB::where('price', '>', '4'), FlexSDB::where('date', '!=', 'today')))
 				->orderby('time', 'desc')
 				->between('year', array(1999, 2000))
 				->in('year', array(1999, 2000, 2001)) 

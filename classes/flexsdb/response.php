@@ -15,6 +15,7 @@ class FlexSDB_Response {
 	public $BoxUsage;
 	public $error_msg;
 	public $error_code;
+	public $count;
 	public $body = array();
 	private $longtexts = array();
 		
@@ -32,7 +33,7 @@ class FlexSDB_Response {
 			if(isset($obj->body->SelectResult->Item)){
 			
 				$content = $obj->body->SelectResult->Item;
-				$this->NextToken = isset($obj->SelectResult->NextToken) ? $obj->SelectResult->NextToken : NULL;
+				$this->NextToken = isset($obj->body->SelectResult->NextToken) ? (string) $obj->body->SelectResult->NextToken : NULL;
 				$this->has_next = $this->NextToken !== NULL ? true : false; 
 			
 				// if there are multiple items			
@@ -58,6 +59,9 @@ class FlexSDB_Response {
 				}
 				
 			}elseif(isset($obj->body->ListDomainsResult->DomainName)){
+				
+				$this->NextToken = isset($obj->body->ListDomainsResult->NextToken) ? (string) $obj->body->ListDomainsResult->NextToken : NULL;
+				$this->has_next = $this->NextToken !== NULL ? true : false; 
 				
 				$domains = $obj->body->ListDomainsResult->DomainName;
 				
@@ -89,6 +93,8 @@ class FlexSDB_Response {
 		
 		// don't need longtexts anymore
 		unset($this->longtexts);
+		
+		$this->count = count($this->body);
 	}
 	
 	private function add_item(SimpleXMLElement $item){

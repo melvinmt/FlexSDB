@@ -2,15 +2,97 @@
 
 class FlexSDB_Item implements ArrayAccess{
 	
-	public $data = array();
-	private $itemName;
 	private $domain;
+	private $itemName;
+	public $data = array();
+	private $current_state = NULL;
+	private $states = NULL;
 	
-	public function __construct($domain, $itemName){
+	public function __construct($domain, $itemName, array $values = array()){
 		
 		$this->domain = $domain;
 		$this->itemName = $itemName;
 		
+		if(!empty($values)){
+			$this->multiset($values);
+		}	
+	}
+	
+	public function save(){
+		
+		$this->states[] = clone $this;
+		$this->current_state = count($this->states) - 1;
+		
+		// return Amazon::SDB()->put_attributes($this->domain, $this->itemName, $this->data, $overwrite = true, $returncurl = false);
+	}
+	
+	public function states(){
+		
+		return $this->states;
+	}
+	
+	public function state($state_id){
+		
+		if(isset($this->states[$state_id])){
+			
+			$first = $this->states[$state_id];
+		 	$this->domain = $first->domain();
+			$this->itemName = $first->itemName();
+			$this->states = $first->states();
+			$this->delete_vars();
+			$this->multiset($first->vars());			
+			$this->current_state = $state_id;
+			return true;
+		}else{
+			return false;
+		}
+		
+	}
+	
+	public function previous(){
+		
+		return $this->state($this->current_state - 1);
+	}
+	
+	public function next(){
+		
+		return $this->state($this->current_state + 1);
+	}
+	
+	public function first(){
+		
+		return $this->state(0, $reset = false);
+	}
+	
+	public function last(){
+		
+		return $this->state(count($this->states) - 1);
+	}
+	
+	public function vars(){
+		return $this->data;
+	}
+	
+	
+	public function delete_vars(){
+		
+		$this->data = array();
+	}
+	
+	public function duplicate($domain = NULL, $itemName = NULL){
+		
+		$domain = $domain !== NULL ? $domain :  $this->domain;
+		$itemName = $itemName !== NULL ? $itemName : $this->itemName;
+		
+		return new FlexSDB_Item($domain, $itemName, $this->data);
+	}
+	
+	public function domain(){
+		return $this->domain;
+	}
+	
+	public function itemName(){
+		return $this->itemName;
 	}
 	
 	public function offsetSet($name, $value){
@@ -129,10 +211,7 @@ class FlexSDB_Item implements ArrayAccess{
 		
 	}
 	
-	public function save(){
-		
-		return Amazon::SDB()->put_attributes($this->domain, $this->itemName, $this->data, $overwrite = true, $returncurl = false);
-		
-	}
+	
+	
 	
 }
