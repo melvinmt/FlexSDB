@@ -2,7 +2,7 @@
 
 class FlexSDB_Strings{
 	
-	public static function decode_val(SimpleXMLElement $value){
+	public static function decode_val($value){
 		
 		$value = strval($value);
 		

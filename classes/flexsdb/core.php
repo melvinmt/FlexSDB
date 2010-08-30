@@ -2,10 +2,63 @@
 
 abstract class FlexSDB_Core{
 	
+	protected static $handles = array();
+	
 	public static function get($domain){
 		
 		return new FlexSDB_Query($domain);
 	}	
+	
+	public static function handle($callback, $key = NULL){
+		
+		if($key != NULL){
+			self::$handles[$key] = $callback; 	
+		}else{
+			self::$handles[] = $callback;
+		}
+		
+		// Zeelot event
+		Event::add('system.shutdown', array('FlexSDB', 'exec_handles'));		
+	}
+	
+	public static function handles(array $callbacks){
+		
+		if(array_values($callbacks) === $callbacks){
+			
+			// numeric array
+			foreach ($callbacks as $callback){
+				
+				self::$handles[] = $callback;
+			}
+
+		}else{
+			
+			// associative array
+			foreach ($callbacks as $key => $callback){
+				
+				self::$handles[$key] = $callback;
+			}
+			
+		}
+		// Zeelot event
+		Event::add('system.shutdown', array('FlexSDB', 'exec_handles'));
+	}
+	
+	public static function rm_handles(){
+		
+		self::$handles = array();
+	}
+	
+	public static function exec_handles(){
+		
+		echo Kohana::debug('EXEC  HANDLES!!');
+		
+		echo Kohana::Debug(self::$handles);
+		
+		if(isset(self::$handles) && !empty(self::$handles)){
+			curl::multi_exec(self::$handles);
+		}
+	}
 	
 	public static function create_domain($domain){
 		

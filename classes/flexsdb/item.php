@@ -4,7 +4,7 @@ class FlexSDB_Item implements ArrayAccess{
 	
 	private $domain;
 	private $itemName;
-	public $data = array();
+	private $data = array();
 	private $current_state = NULL;
 	private $states = NULL;
 	
@@ -23,7 +23,8 @@ class FlexSDB_Item implements ArrayAccess{
 		$this->states[] = clone $this;
 		$this->current_state = count($this->states) - 1;
 		
-		// return Amazon::SDB()->put_attributes($this->domain, $this->itemName, $this->data, $overwrite = true, $returncurl = false);
+		FlexSDB::handle(Amazon::SDB()->put_attributes($this->domain, $this->itemName, $this->data, $overwrite = true, $returncurl = true));
+		
 	}
 	
 	public function states(){
@@ -40,7 +41,7 @@ class FlexSDB_Item implements ArrayAccess{
 			$this->itemName = $first->itemName();
 			$this->states = $first->states();
 			$this->delete_vars();
-			$this->multiset($first->vars());			
+			$this->multiset($first->as_array());			
 			$this->current_state = $state_id;
 			return true;
 		}else{
@@ -69,8 +70,15 @@ class FlexSDB_Item implements ArrayAccess{
 		return $this->state(count($this->states) - 1);
 	}
 	
-	public function vars(){
-		return $this->data;
+	public function as_array(){
+		
+		$array = array();
+		
+		foreach($this->data as $key => $var){
+			$array[] = $this->$key;
+		}
+		
+		return $array;
 	}
 	
 	
@@ -127,7 +135,47 @@ class FlexSDB_Item implements ArrayAccess{
 	
 	public function __get($name){
 		
-		return is_numeric($this->data[$name]) ? (float) $this->data[$name] : $this->data[$name];
+		if(is_array($this->data[$name])){
+			
+			$longtext = array();
+			// check for longtext format
+			
+			foreach ($this->data[$name] as $value){
+			
+				if(preg_match('/^([0-9]) (.*)/', $value, $matches) AND isset($matches[0])){
+
+					if(isset($longtext['sum_check'])){
+
+						$longtext['sum_check'] += (int) $matches[1];
+
+					}else{
+
+						$longtext['sum_check'] = (int) $matches[1];
+					}
+
+					$longtext['strings'][] = $matches[0];
+				}
+			}
+			
+			if(isset($longtext['sum_check']) AND isset($longtext['strings'])){
+						
+				$sum_check = $longtext['sum_check'];
+
+				$i2 = 0; for ($i = 0; $i < count($longtext['strings']); $i ++){ $i2 = $i2 +$i;}
+
+				if($sum_check === $i2){
+
+					return FlexSDB_Strings::implode($longtext['strings']);
+				}else{
+				
+					return $this->data[$name];
+				}
+			}
+	
+			
+		}else{
+			return FlexSDB_Strings::decode_val($this->data[$name]);
+		}
 	}
 	
 	public function __set($name, $value){
