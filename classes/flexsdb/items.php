@@ -3,11 +3,7 @@
 class FlexSDB_Items implements Iterator{
 	
 	private $position = 0;
-    private $array = array(
-        "firstelement",
-        "secondelement",
-        "lastelement",
-    );
+    public $array = array();
 	public $items = array();
 	
 	public function __construct($domain, array $items){
@@ -20,7 +16,7 @@ class FlexSDB_Items implements Iterator{
 				$this->items[] = new FlexSDB_Item($domain, $itemName, $values);
 			}
 			
-			$this->array = array_values($this->items);
+			$this->array = array_values($items);
 			
 		}else{
 			
@@ -49,5 +45,6 @@ class FlexSDB_Items implements Iterator{
     function valid() {
         return $this->has_next;
     }
+
 
 }

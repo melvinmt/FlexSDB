@@ -16,6 +16,7 @@ class FlexSDB_Query{
 	private $page = 1;
 	public $response;
 	public $success = false;
+	public $sql;
 	
 	public function __construct($domain = NULL){
 		
@@ -30,6 +31,7 @@ class FlexSDB_Query{
 		$this->cache = true;
 		$this->cache_expire = (int) $expire;
 		
+		return $this;
 	}
 	
 	public function all(){
@@ -63,6 +65,9 @@ class FlexSDB_Query{
 	}
 	
 	private function add_where($logical, $clause){
+		
+		// strip slashes if clause contains itemName();
+		$clause = str_replace('`itemName()`', 'itemName()', $clause);
 		
 		$this->wheres[] = array('logical' => $logical, 'clause' => $clause);
 		
@@ -329,14 +334,28 @@ class FlexSDB_Query{
 		
 		$this->success = $this->response->success;
 		
+		return $this;
+		
 		if($this->success AND $this->response->count > 0){
 			
-			return new FlexSDB_Items($this->domain, $this->items);
+			// 
+			
 			
 		}else{
 			
-			return $this->response;
+			return $this;
 		}
 		
+	}
+	
+	public function items(){
+		
+		return new FlexSDB_Items($this->domain, $this->items);	
+		
+	}
+	
+	public function response(){
+	
+		return $this->response;
 	}
 }

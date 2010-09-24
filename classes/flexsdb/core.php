@@ -56,7 +56,7 @@ abstract class FlexSDB_Core{
 		echo Kohana::Debug(self::$handles);
 		
 		if(isset(self::$handles) && !empty(self::$handles)){
-			curl::multi_exec(self::$handles);
+		  return curl::multi_exec(self::$handles);
 		}
 	}
 	
@@ -209,6 +209,76 @@ abstract class FlexSDB_Core{
 			FlexSDB::info_domains();
 					
 	}
+	
+	public static function explode($name, array $input){
+		
+		$output = array();
+		$index = array();
+		
+		$output['___'.$name] = 'multidimensional';
+	
+		// explode
+		self::explode_data($name, $input, $output, $index);
+			
+		unset($array);
+		unset($index);
+		
+		return $output;
+	}
+	
+	public static function explode_data($name, array $data, &$array, &$index){
+			
+		foreach ($data as $key => $value){
+			
+			if(is_array($value)){
+				
+				$func = __FUNCTION__;
+				self::$func($name.'__'.$key, $value, $array, $index);
+				
+			}else{
+				
+				$array['__'.$name.'__'.$key] = $value;
+				$index[] = $key;
+				
+			}	
+			
+		}
+		
+	}
+	
+	public static function implode($name, array $input){
+		
+		$output = array();
+		
+		$group = array();
+		foreach ($input as $key => $value){
+			
+			if(strpos($key, '__'.$name) === 0){
+				
+				// add to group
+				$group[$key] = $value;
+				
+				$str = '$output'.substr(str_replace('__', '"]["', str_replace('__'.$name, '', $key)), 2, -2).' = $value;';
+				
+				$key = str_replace('__'.$name.'__', '', $key);
+				
+				$keys = explode('__', $key);
+				
+				$str = '$output["'.implode('"]["', $keys).'"] = $value;';
+				
+				eval($str);
+			}
+			
+		}	
+		
+		return $output;
+		
+	}
+	
+	
+	
+	
+	
 	
 	
 }

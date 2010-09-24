@@ -24,7 +24,6 @@ class FlexSDB_Item implements ArrayAccess{
 		$this->current_state = count($this->states) - 1;
 		
 		FlexSDB::handle(Amazon::SDB()->put_attributes($this->domain, $this->itemName, $this->data, $overwrite = true, $returncurl = true));
-		
 	}
 	
 	public function states(){
@@ -135,7 +134,7 @@ class FlexSDB_Item implements ArrayAccess{
 	
 	public function __get($name){
 		
-		if(is_array($this->data[$name])){
+		if(isset($this->data[$name]) AND is_array($this->data[$name])){
 			
 			$longtext = array();
 			// check for longtext format
@@ -174,7 +173,17 @@ class FlexSDB_Item implements ArrayAccess{
 	
 			
 		}else{
-			return FlexSDB_Strings::decode_val($this->data[$name]);
+			
+			if(isset($this->data['___'.$name])){
+				
+				// return multidimensional array
+				
+				return FlexSDB::implode($name, $this->data);
+				
+			}else{
+			
+				return FlexSDB_Strings::decode_val($this->data[$name]);
+			}
 		}
 	}
 	
@@ -182,10 +191,51 @@ class FlexSDB_Item implements ArrayAccess{
 		
 		if(count($this->data) < 256){
 			
+			// check if array is multidimensional
+			
+			if(is_array($value)){
+				
+				foreach ($value as $k => $v){
+
+					if(is_array($v)){
+						
+						// multidimensional!
+						
+						$vars = FlexSDB::explode($name, $value);
+
+						foreach ($vars as $k2 => $v2){
+
+							$this->$k2 = $v2;
+
+						}
+						
+						return true;
+						
+					}elseif(!is_numeric($k)){
+						
+						// multidimensional!
+						
+						$vars = FlexSDB::explode($name, $value);
+
+						foreach ($vars as $k2 => $v2){
+
+							$this->$k2 = $v2;
+
+						}
+						
+						return true;
+						
+					}
+						
+				}
+				
+			}	
+				
+			
 			$setval = $this->setval($value);
 			
 			if($setval !== NULL){
-			
+				
 				return $this->data[$name] = $setval;
 				
 			}else{
@@ -215,15 +265,6 @@ class FlexSDB_Item implements ArrayAccess{
 			}
 			
 		}elseif(is_array($value)){
-			
-			foreach ($value as $k => $v){
-				
-				// no multidimensional arrays allowed
-				if(is_array($v)){
-					
-					unset($value[$k]);
-				}
-			}
 			
 			return $value;
 			
