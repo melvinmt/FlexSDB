@@ -2,6 +2,9 @@
 
 class FlexSDB_Query{
 	
+	public $success = false;
+	public $is_empty = true;
+	public $not_empty_success = false;
 	private $domain;
 	private $wheres = array();
 	private $order_by;
@@ -15,7 +18,6 @@ class FlexSDB_Query{
 	private $pagination = false;
 	private $page = 1;
 	public $response;
-	public $success = false;
 	public $sql;
 	
 	public function __construct($domain = NULL){
@@ -320,6 +322,8 @@ class FlexSDB_Query{
 			
 		}
 		
+		$this->is_empty = $this->response->is_empty;
+		
 		if($this->pagination AND isset($this->response->NextToken) AND isset($original_limit) AND isset($original_select)){
 			
 			$this->items = array();
@@ -333,6 +337,8 @@ class FlexSDB_Query{
 		}
 		
 		$this->success = $this->response->success;
+	
+		$this->not_empty_success = ($this->success AND !$this->is_empty) ?: false;
 		
 		return $this;
 		
@@ -353,6 +359,22 @@ class FlexSDB_Query{
 		return new FlexSDB_Items($this->domain, $this->items);	
 		
 	}
+	
+	public function item(){
+		
+		if(isset($this->response->body) AND !empty($this->response->body)){
+			
+			$body = $this->response->body;
+			
+			$values = reset($body);
+			$itemName = key($body);
+			
+			return new FlexSDB_Item($this->domain, $itemName, $values);
+			
+		}
+		
+	}
+
 	
 	public function response(){
 	

@@ -1,10 +1,11 @@
 <?php defined('SYSPATH') or die('No direct access allowed.');
 
-class FlexSDB_Items implements Iterator{
+class FlexSDB_Items implements Iterator, ArrayAccess{
 	
 	private $position = 0;
     public $array = array();
 	public $items = array();
+	public $empty = true;
 	
 	public function __construct($domain, array $items){
 		
@@ -17,10 +18,11 @@ class FlexSDB_Items implements Iterator{
 			}
 			
 			$this->array = array_values($items);
+			$this->empty = false;
 			
 		}else{
 			
-			return false;
+			$this->empty = true;
 		}
 	}	
 
@@ -44,6 +46,26 @@ class FlexSDB_Items implements Iterator{
 
     function valid() {
         return $this->has_next;
+    }
+
+	public function offsetSet($name, $value){
+		
+        $this->items[$name] = $value;
+    }
+
+    public function offsetExists($name){
+	
+        return isset($this->items[$name]);
+    }
+    
+	public function offsetUnset($name){
+		
+        unset($this->items[$name]);
+    }
+
+    public function offsetGet($name){
+	
+        return $this->items[$name];
     }
 
 

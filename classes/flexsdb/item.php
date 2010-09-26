@@ -24,6 +24,8 @@ class FlexSDB_Item implements ArrayAccess{
 		$this->current_state = count($this->states) - 1;
 		
 		FlexSDB::handle(Amazon::SDB()->put_attributes($this->domain, $this->itemName, $this->data, $overwrite = true, $returncurl = true));
+		
+		return true;
 	}
 	
 	public function states(){
