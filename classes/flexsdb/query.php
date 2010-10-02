@@ -91,6 +91,36 @@ class FlexSDB_Query{
 		
 	}
 	
+	
+	public function or_is_null($field){
+	
+		$this->add_where('OR', "`{$field}` IS NULL");
+		
+		return $this;
+	}
+	
+	public function or_is_not_null($field){
+	
+		$this->add_where('OR', "`{$field}` IS NOT NULL");
+		
+		return $this;
+	}
+	
+	
+	public function and_is_null($field){
+	
+		$this->add_where('AND', "`{$field}` IS NULL");
+		
+		return $this;
+	}
+
+	public function and_is_not_null($field){
+	
+		$this->add_where('AND', "`{$field}` IS NOT NULL");
+		
+		return $this;
+	}
+	
 	public function and_wheres(){
 		
 		$wheres = func_get_args();
@@ -117,7 +147,7 @@ class FlexSDB_Query{
 	
 	public function order_by($field, $order){
 		
-		$this->add_where('AND', "`{$field}` IS NOT NULL");
+		$this->and_is_not_null($field);
 		
 		$this->order_by = " `{$field}` ".strtoupper($order)." ";
 		
