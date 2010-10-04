@@ -343,6 +343,7 @@ class FlexSDB_Query{
 				$this->items = array_merge($this->items, $this->response->body);
 				
 			}
+			
 		}else{
 			
 			$result = Amazon::SDB()->select($this->sql, $opt);

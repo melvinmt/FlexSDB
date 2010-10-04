@@ -172,6 +172,8 @@ class FlexSDB_Item implements ArrayAccess{
 					return $this->data[$name];
 				}
 			}
+			
+			return $this->data[$name];
 	
 			
 		}else{

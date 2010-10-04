@@ -20,7 +20,7 @@ class FlexSDB_Response {
 	private $longtexts = array();
 		
 	public function __construct(ResponseCore $obj, $single = false){
-		
+	
 		$this->status = $obj->status;
 		$this->date = strtotime($obj->header['date']);
 		$this->total_time = $obj->header['_info']['total_time'];
