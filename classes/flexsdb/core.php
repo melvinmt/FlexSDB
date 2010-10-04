@@ -9,6 +9,14 @@ abstract class FlexSDB_Core{
 		return new FlexSDB_Query($domain);
 	}	
 	
+	public static function delete($domain, $itemName, $keys = NULL){
+		
+		$handle = Amazon::SDB()->delete_attributes($domain, $itemName, $keys, $returnCurl = true);
+		
+		FlexSDB::handle($handle);
+		
+	}
+	
 	public static function handle($callback, $key = NULL){
 		
 		if($key != NULL){

@@ -13,7 +13,7 @@ class FlexSDB_Query{
 	private $all = false;
 	private $all_opts = NULL;
 	private $cache = false;
-	private $cache_expire;
+	private $cache_expire = 1;
 	public $items = array();
 	private $pagination = false;
 	private $page = 1;
@@ -25,13 +25,17 @@ class FlexSDB_Query{
 		if($domain != NULL){
 			$this->domain = $domain;
 		}
-		
 	}
 	
 	public function cache($expire){
 		
 		$this->cache = true;
-		$this->cache_expire = (int) $expire;
+		
+		if(is_numeric($expire) AND $expire > 0){
+			$this->cache_expire = (int) $expire;
+		}else{
+			$this->cache_expire = 1;
+		}
 		
 		return $this;
 	}
@@ -296,77 +300,124 @@ class FlexSDB_Query{
 		
 		$this->sql = trim(str_replace('  ', ' ', $this->sql));
 		
+		$cache_key = 'FlexSDB_Query::'.sha1($this->sql.json_encode($this->all_opts).json_encode($this->all));
+		
+		if($this->cache){
+			
+			$cached_response = mcache::get($cache_key, false);
+			
+		}else{
+			
+			$cached_response = false;
+		}	
+		
 		$opt = array();
 		
 		if($this->all == true){
-			
+	
 			if($this->all_opts == NULL){
-				
+		
 				$has_next = true;
-				
+		
 				while($has_next == true){
-				
-					$result = Amazon::SDB()->select($this->sql, $opt);
-					$this->response = new FlexSDB_Response($result);
+		
+					if(!$cached_response){
+						$result = Amazon::SDB()->select($this->sql, $opt);
+						$this->response = new FlexSDB_Response($result);
+
+						if($this->cache){ 
+							mcache::set($cache_key, $this->response, $this->cache_expire); 
+						}
+					}else{
+						$this->response = $cached_response;
+					}
+					
+					
 					$has_next = $this->response->has_next;
 					$opt['NextToken'] = $this->response->NextToken;
-					
+			
 					$this->items = array_merge($this->items, $this->response->body);
 				}
-				
+		
 			}elseif(is_int($this->all_opts)){ 
-				
+		
 				$i = 0;
 				$has_next = true;
-				
+		
 				while($i < $this->all_opts AND $has_next == true){
-					
-					$result = Amazon::SDB()->select($this->sql, $opt);
-					$this->response = new FlexSDB_Response($result);
-					
+			
+					if(!$cached_response){
+						$result = Amazon::SDB()->select($this->sql, $opt);
+						$this->response = new FlexSDB_Response($result);
+
+						if($this->cache){ 
+							mcache::set($cache_key, $this->response, $this->cache_expire); 
+						}
+					}else{
+						$this->response = $cached_response;
+					}
+			
 					$has_next = $this->response->has_next;
 					$opt['NextToken'] = $this->response->NextToken;
 
 					$this->items = array_merge($this->items, $this->response->body);
 					$i ++;
-					
+			
 				}
-								
+						
 			}elseif(is_string($this->all_opts)){
-				
+		
 				$opt['NextToken'] = $this->all_opts;
 				
-				$result = Amazon::SDB()->select($this->sql, $opt);
-				$this->response = new FlexSDB_Response($result);
+				if(!$cached_response){
+					$result = Amazon::SDB()->select($this->sql, $opt);
+					$this->response = new FlexSDB_Response($result);
+
+					if($this->cache){ 
+						mcache::set($cache_key, $this->response, $this->cache_expire); 
+					}
+				}else{
+					$this->response = $cached_response;
+				}
+				
 				$has_next = $this->response->has_next;
 				$opt['NextToken'] = $this->response->NextToken;
 				$this->items = array_merge($this->items, $this->response->body);
-				
+		
 			}
-			
+	
 		}else{
-			
-			$result = Amazon::SDB()->select($this->sql, $opt);
-			$this->response = new FlexSDB_Response($result);
-			
+	
+			if(!$cached_response){
+				$result = Amazon::SDB()->select($this->sql, $opt);
+				$this->response = new FlexSDB_Response($result);
+				
+				if($this->cache){ 
+					mcache::set($cache_key, $this->response, $this->cache_expire); 
+				}
+			}else{
+				$this->response = $cached_response;
+			}
+	
 			$this->items = array_merge($this->items, $this->response->body);
-			
+	
 		}
-		
+
 		$this->is_empty = $this->response->is_empty;
-		
+
 		if($this->pagination AND isset($this->response->NextToken) AND isset($original_limit) AND isset($original_select)){
-			
+	
 			$this->items = array();
 			$this->pagination = false;
 			$this->NextToken($this->response->NextToken);			
 			$this->limit($original_limit);
 			$this->select($original_select);
-				
-			return $this->execute();
-			
-		}
 		
+			return $this->execute();
+	
+		}
+	
+	
 		$this->success = $this->response->success;
 	
 		$this->not_empty_success = ($this->success AND !$this->is_empty) ?: false;
