@@ -51,9 +51,9 @@ abstract class FlexSDB_Core{
 	
 	public static function exec_handles(){
 		
-		echo Kohana::debug('EXEC  HANDLES!!');
+        // echo Kohana::debug('EXEC  HANDLES!!');
 		
-		echo Kohana::Debug(self::$handles);
+        // echo Kohana::Debug(self::$handles);
 		
 		if(isset(self::$handles) && !empty(self::$handles)){
 		  return curl::multi_exec(self::$handles);
