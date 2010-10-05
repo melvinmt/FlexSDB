@@ -272,7 +272,7 @@ abstract class FlexSDB_Core{
 				
 				$keys = explode('__', $key);
 				
-				$str = '$output["'.implode('"]["', $keys).'"] = $value;';
+				$str = '$output["'.implode('"]["', $keys).'"] = FlexSDB_Strings::decode_val($value);';
 				
 				eval($str);
 			}
