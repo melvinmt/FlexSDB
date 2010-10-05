@@ -72,12 +72,26 @@ class FlexSDB_Item implements ArrayAccess{
 	}
 	
 	public function as_array(){
-		
+				
 		$array = array();
 		
 		foreach($this->data as $key => $var){
-			$array[$key] = $this->$key;
-		}
+		    
+		    if(strpos($key, '___') === 0){
+		        
+		        $nkey = str_replace('___', '', $key);
+		        
+		        $array[$nkey] = $this->{$nkey};
+		        
+	        }elseif(strpos($key, '__') === 0){
+	            
+	            // ignore
+	            
+            }else{
+		    
+    			$array[$key] = $this->{$key};
+			}
+		}		
 		
 		return $array;
 	}
@@ -173,13 +187,12 @@ class FlexSDB_Item implements ArrayAccess{
 				}
 			}
 			
-			return $this->data[$name];
+            return $this->data[$name];
 	
-			
 		}else{
-			
+		    			
 			if(isset($this->data['___'.$name])){
-				
+			    
 				// return multidimensional array
 				
 				return FlexSDB::implode($name, $this->data);
