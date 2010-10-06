@@ -89,7 +89,7 @@ class FlexSDB_Query{
 	
 	public function or_where($field, $operator, $value){
 	
-		$this->add_where('AND', "`{$field}` ".strtoupper($operator)." '{$value}'");
+		$this->add_where('OR', "`{$field}` ".strtoupper($operator)." '{$value}'");
 		
 		return $this;
 		
