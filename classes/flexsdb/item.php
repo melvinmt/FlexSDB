@@ -18,7 +18,7 @@ class FlexSDB_Item implements ArrayAccess{
 		}	
 	}
 	
-	public function save(){
+	public function save(){	
 		
 		$this->states[] = clone $this;
 		$this->current_state = count($this->states) - 1;
@@ -71,7 +71,7 @@ class FlexSDB_Item implements ArrayAccess{
 		return $this->state(count($this->states) - 1);
 	}
 	
-	public function as_array(){
+	public function as_array(){		
 				
 		$array = array();
 		
