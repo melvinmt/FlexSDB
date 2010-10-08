@@ -321,7 +321,7 @@ class FlexSDB_Query{
 		}	
 		
 		$opt = array();
-		$opt['ConsistentRead'] = $this->consistent;
+		$opt['ConsistentRead'] = $this->consistent ? 'true' : 'false';
 		
 		if($this->all == true){
 	
