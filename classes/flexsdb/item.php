@@ -7,6 +7,7 @@ class FlexSDB_Item implements ArrayAccess{
 	private $data = array();
 	private $current_state = NULL;
 	private $states = NULL;
+	private $delete_attributes = array();
 	
 	public function __construct($domain, $itemName, array $values = array()){
 		
@@ -24,6 +25,12 @@ class FlexSDB_Item implements ArrayAccess{
 		$this->current_state = count($this->states) - 1;
 		
 		FlexSDB::handle(Amazon::SDB()->put_attributes($this->domain, $this->itemName, $this->data, $overwrite = true, $returncurl = true), $this->itemName);
+				
+		if(!empty($this->delete_attributes)){
+					
+			FlexSDB::handle(Amazon::SDB()->delete_attributes($this->domain, $this->itemName, array_unique($this->delete_attributes), $returncurl = true), $this->itemName.'_delete');
+
+		}
 		
 		return true;
 	}
@@ -120,7 +127,7 @@ class FlexSDB_Item implements ArrayAccess{
 	
 	public function offsetSet($name, $value){
 		
-        $this->$name = $value;
+        $this->{$name} = $value;
     }
 
     public function offsetExists($name){
@@ -248,6 +255,11 @@ class FlexSDB_Item implements ArrayAccess{
 				
 			}	
 				
+			if($value === NULL){
+				$this->delete_attributes[] = $name;
+				unset($this->{$name});
+				return  NULL;
+			}
 			
 			$setval = $this->setval($value);
 			

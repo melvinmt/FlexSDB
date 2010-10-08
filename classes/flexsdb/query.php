@@ -19,12 +19,21 @@ class FlexSDB_Query{
 	private $page = 1;
 	public $response;
 	public $sql;
+	public $consistent = false;
 	
 	public function __construct($domain = NULL){
 		
 		if($domain != NULL){
 			$this->domain = $domain;
 		}
+	}
+	
+	public function consistent($consistent){
+		
+		$this->consistent = (bool) $consistent;
+		
+		return $this;
+		
 	}
 	
 	public function cache($expire){
@@ -260,7 +269,7 @@ class FlexSDB_Query{
 			}else{
 				$this->pagination = false;
 			}
-				
+			
 		}
 		
 		$this->sql .= "SELECT {$this->select} ";
@@ -312,6 +321,7 @@ class FlexSDB_Query{
 		}	
 		
 		$opt = array();
+		$opt['ConsistentRead'] = $this->consistent;
 		
 		if($this->all == true){
 	
@@ -427,7 +437,6 @@ class FlexSDB_Query{
 		if($this->success AND $this->response->count > 0){
 			
 			// 
-			
 			
 		}else{
 			
