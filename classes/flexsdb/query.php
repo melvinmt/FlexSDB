@@ -413,8 +413,11 @@ class FlexSDB_Query{
 	
 		}
 	
-		// add to FlexSDB Debug
-		FlexSDB::add_debug(array('type' => 'query', 'cache_key' => $cache_key, 'sql' => $this->sql, 'request_time' => $this->response->total_time.' s'));
+		if(!$cached_response){
+			FlexSDB::add_debug(array('type' => 'query', 'cached' => false, 'cache_key' => $cache_key, 'sql' => $this->sql, 'request_time' => $this->response->total_time.' s'));
+		}else{
+			FlexSDB::add_debug(array('type' => 'query', 'cached' => true, 'cache_key' => $cache_key, 'sql' => $this->sql));	
+		}
 		
 
 		$this->is_empty = $this->response->is_empty;
