@@ -3,6 +3,8 @@
 abstract class FlexSDB_Core{
 	
 	protected static $handles = array();
+	protected static $debug = array();
+	protected static $show_debug = false;
 	
 	public static function get($domain){
 		
@@ -17,6 +19,26 @@ abstract class FlexSDB_Core{
 		
 	}
 	
+	public static function add_debug(array $data){
+		
+		self::$debug[] = $data;
+		
+		Event::add('system.shutdown', array('FlexSDB', 'show_debug'));		
+	}
+	
+	public static function show_debug(){
+		
+		if(self::$show_debug){
+			echo Kohana::debug(self::$debug);
+		}
+		
+	}
+	
+	public static function debug($show_debug = true){
+		
+		return self::$show_debug = (bool) $show_debug;
+	}
+	
 	public static function handle($callback, $key = NULL){
 		
 		if($key != NULL){
@@ -24,6 +46,9 @@ abstract class FlexSDB_Core{
 		}else{
 			self::$handles[] = $callback;
 		}
+		
+		// add debug
+		FlexSDB::add_debug(array('type' => 'handle', 'curl' => $callback, 'key' => $key));
 		
 		// Zeelot event
 		Event::add('system.shutdown', array('FlexSDB', 'exec_handles'));		
@@ -59,16 +84,24 @@ abstract class FlexSDB_Core{
 	
 	public static function exec_handles(){
 		
-        echo Kohana::debug('EXEC  HANDLES!!');
-		
-        echo Kohana::Debug(self::$handles);
+		$start_time = microtime(true);
 		
 		if(isset(self::$handles) && !empty(self::$handles)){
-		  $execs = curl::multi_exec(self::$handles);
-		
-		echo Kohana::debug($execs);
-			return $execs;
+		  	
+			$execs = curl::multi_exec(self::$handles);
+
 		}
+		
+		$end_time = microtime(true);
+				
+		$exec_time = $end_time - $start_time;
+		
+		if(self::$show_debug){
+			echo Kohana::debug(array('type' => 'all_handles', 'exec_time' => $exec_time.' s'));
+		}
+		
+		return $execs;
+		
 	}
 	
 	public static function create_domain($domain){

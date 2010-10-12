@@ -412,6 +412,10 @@ class FlexSDB_Query{
 			$this->items = array_merge($this->items, $this->response->body);
 	
 		}
+	
+		// add to FlexSDB Debug
+		FlexSDB::add_debug(array('type' => 'query', 'cache_key' => $cache_key, 'sql' => $this->sql, 'request_time' => $this->response->total_time.' s'));
+		
 
 		$this->is_empty = $this->response->is_empty;
 
