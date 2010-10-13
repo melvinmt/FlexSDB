@@ -428,6 +428,13 @@ class FlexSDB_Query{
 			$this->items = array_merge($this->items, $this->response->body);
 	
 		}
+	
+		if(!$cached_response){
+			FlexSDB::add_debug(array('type' => 'query', 'cached' => false, 'cache_key' => $cache_key, 'sql' => $this->sql, 'request_time' => $this->response->total_time.' s'));
+		}else{
+			FlexSDB::add_debug(array('type' => 'query', 'cached' => true, 'cache_key' => $cache_key, 'sql' => $this->sql));	
+		}
+		
 
 		$this->is_empty = $this->response->is_empty;
 
