@@ -89,6 +89,10 @@ class FlexSDB_Query{
 	}
 	
 	public function and_where($field, $operator, $value){
+	    
+	    if(is_bool($value)){
+	        $value = intval($value);
+        }
 		
 		$this->add_where('AND',  "`{$field}` ".strtoupper($operator)." '{$value}'");
 		
@@ -97,6 +101,10 @@ class FlexSDB_Query{
 	}
 	
 	public function or_where($field, $operator, $value){
+	    
+	    if(is_bool($value)){
+	        $value = intval($value);
+        }	    
 	
 		$this->add_where('OR', "`{$field}` ".strtoupper($operator)." '{$value}'");
 		
@@ -197,6 +205,10 @@ class FlexSDB_Query{
 	}
 	
 	public function and_every($field, $operator, $value){
+	    
+	    if(is_bool($value)){
+	        $value = intval($value);
+        }	    
 		
 		$this->add_where('AND', "(EVERY(`{$field}`) ".strtoupper($operator)." '{$value}')");
 		
@@ -205,6 +217,10 @@ class FlexSDB_Query{
 	
 	
 	public function or_every($field, $operator, $value){
+	    
+	    if(is_bool($value)){
+	        $value = intval($value);
+        }	    
 		
 		$this->add_where('OR', "(EVERY(`{$field}`) ".strtoupper($operator)." '{$value}')");
 		
