@@ -292,6 +292,7 @@ abstract class FlexSDB_Core{
 	
 	public static function implode($name, array $input){
 		
+		
 		$output = array();
 		
 		$group = array();
@@ -314,6 +315,8 @@ abstract class FlexSDB_Core{
 			}
 			
 		}	
+		
+		ksort($output);
 		
 		return $output;
 		

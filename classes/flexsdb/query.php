@@ -405,7 +405,9 @@ class FlexSDB_Query{
 				if($this->cache){ 
 					mcache::set($cache_key, $this->response, $this->cache_expire); 
 				}
+				
 			}else{
+				
 				$this->response = $cached_response;
 			}
 	
