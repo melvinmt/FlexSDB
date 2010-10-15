@@ -93,6 +93,10 @@ class FlexSDB_Query{
 	    if(is_bool($value)){
 	        $value = intval($value);
         }
+
+		if(is_numeric($value)){
+			$value = sprintf('%016.6f', $value);
+		}
 		
 		$this->add_where('AND',  "`{$field}` ".strtoupper($operator)." '{$value}'");
 		
@@ -105,6 +109,10 @@ class FlexSDB_Query{
 	    if(is_bool($value)){
 	        $value = intval($value);
         }	    
+
+		if(is_numeric($value)){
+			$value = sprintf('%016.6f', $value);
+		}
 	
 		$this->add_where('OR', "`{$field}` ".strtoupper($operator)." '{$value}'");
 		
@@ -210,6 +218,10 @@ class FlexSDB_Query{
 	        $value = intval($value);
         }	    
 		
+		if(is_numeric($value)){
+			$value = sprintf('%016.6f', $value);
+		}
+		
 		$this->add_where('AND', "(EVERY(`{$field}`) ".strtoupper($operator)." '{$value}')");
 		
 		return $this;
@@ -221,6 +233,10 @@ class FlexSDB_Query{
 	    if(is_bool($value)){
 	        $value = intval($value);
         }	    
+		
+		if(is_numeric($value)){
+			$value = sprintf('%016.6f', $value);
+		}
 		
 		$this->add_where('OR', "(EVERY(`{$field}`) ".strtoupper($operator)." '{$value}')");
 		
