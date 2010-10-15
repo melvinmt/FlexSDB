@@ -301,11 +301,7 @@ class FlexSDB_Item implements ArrayAccess{
 			
 			return NULL;
 			
-		}elseif(is_bool($value)){
-			
-			return (int) $value ?: 0;
-			
-		}elseif(is_numeric($value)){
+		}elseif(is_numeric($value) OR is_bool($value)){
 			
 			return sprintf('%016.6f', $value);
 			
