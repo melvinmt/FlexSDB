@@ -118,6 +118,26 @@ abstract class FlexSDB_Core{
 		
 	}
 	
+	
+	public static function reset_domain($domain){
+		
+		
+		$request = Amazon::SDB()->delete_domain($domain, $curl = null);
+		
+		$response = new FlexSDB_Response($request);
+		
+		echo Kohana::debug($response);
+		
+		$request = Amazon::SDB()->create_domain($domain, $curl = null);
+		
+		// echo Kohana::debug($request);
+		
+		$response = new FlexSDB_Response($request);
+		
+		echo Kohana::debug($response);
+		
+	}
+	
 	public static function list_domains(){
 
 		$opt = array();
