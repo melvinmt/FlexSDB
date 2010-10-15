@@ -39,7 +39,7 @@ abstract class FlexSDB_Core{
 		return self::$show_debug = (bool) $show_debug;
 	}
 	
-	public static function handle($callback, $key = NULL){
+	public static function handle($callback, $key = NULL, $data = NULL, $domain = NULL){
 		
 		if($key != NULL){
 			self::$handles[$key] = $callback; 	
@@ -48,7 +48,7 @@ abstract class FlexSDB_Core{
 		}
 		
 		// add debug
-		FlexSDB::add_debug(array('type' => 'handle', 'curl' => $callback, 'key' => $key));
+		FlexSDB::add_debug(array('type' => 'handle', 'curl' => $callback, 'key' => $key, 'data' => $data, 'domain' => $domain ));
 		
 		// Zeelot event
 		Event::add('system.shutdown', array('FlexSDB', 'exec_handles'));		
@@ -98,6 +98,8 @@ abstract class FlexSDB_Core{
 		
 		if(self::$show_debug){
 			echo Kohana::debug(array('type' => 'all_handles', 'exec_time' => $exec_time.' s'));
+			
+		    echo Kohana::debug($execs);
 		}
 		
 		return $execs;
