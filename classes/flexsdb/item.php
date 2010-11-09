@@ -111,7 +111,7 @@ class FlexSDB_Item implements ArrayAccess{
 	
 	public function duplicate($domain = NULL, $itemName = NULL){
 		
-		$domain = $domain !== NULL ? $domain :  $this->domain;
+		$domain = $domain !== NULL ? FlexSDB::prefix().$domain : $this->domain;
 		$itemName = $itemName !== NULL ? $itemName : $this->itemName;
 		
 		return new FlexSDB_Item($domain, $itemName, $this->data);

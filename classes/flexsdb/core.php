@@ -5,15 +5,26 @@ abstract class FlexSDB_Core{
 	protected static $handles = array();
 	protected static $debug = array();
 	protected static $show_debug = false;
+	protected static $prefix = NULL;
+	
+	public static function prefix(){
+		
+		if(self::$prefix === NULL){
+			return self::$prefix = Kohana::config('flexsdb.prefix');
+		}else{
+			return self::$prefix;
+		}
+		
+	}
 	
 	public static function get($domain){
 		
-		return new FlexSDB_Query($domain);
+		return new FlexSDB_Query(FlexSDB::prefix().$domain);
 	}	
 	
 	public static function delete($domain, $itemName, $keys = NULL){
 		
-		$handle = Amazon::SDB()->delete_attributes($domain, $itemName, $keys, $returnCurl = true);
+		$handle = Amazon::SDB()->delete_attributes(FlexSDB::prefix().$domain, $itemName, $keys, $returnCurl = true);
 		
 		FlexSDB::handle($handle);
 		
@@ -48,7 +59,7 @@ abstract class FlexSDB_Core{
 		}
 		
 		// add debug
-		FlexSDB::add_debug(array('type' => 'handle', 'curl' => $callback, 'key' => $key, 'data' => $data, 'domain' => $domain ));
+		FlexSDB::add_debug(array('type' => 'handle', 'curl' => $callback, 'key' => $key, 'data' => $data, 'domain' => FlexSDB::prefix().$domain ));
 		
 		// Zeelot event
 		Event::add('system.shutdown', array('FlexSDB', 'exec_handles'));		
@@ -108,7 +119,7 @@ abstract class FlexSDB_Core{
 	
 	public static function create_domain($domain){
 		
-		$request = Amazon::SDB()->create_domain($domain, $curl = null);
+		$request = Amazon::SDB()->create_domain(FlexSDB::prefix().$domain, $curl = null);
 		
 		// echo Kohana::debug($request);
 		
@@ -118,17 +129,27 @@ abstract class FlexSDB_Core{
 		
 	}
 	
+	public static function delete_domain($domain){
+		
+		$request = Amazon::SDB()->delete_domain(FlexSDB::prefix().$domain, $curl = null);
+		
+		// echo Kohana::debug($request);
+		
+		$response = new FlexSDB_Response($request);
+		
+		echo Kohana::debug($response);
+		
+	}
 	
 	public static function reset_domain($domain){
 		
-		
-		$request = Amazon::SDB()->delete_domain($domain, $curl = null);
+		$request = Amazon::SDB()->delete_domain(FlexSDB::prefix().$domain, $curl = null);
 		
 		$response = new FlexSDB_Response($request);
 		
 		echo Kohana::debug($response);
 		
-		$request = Amazon::SDB()->create_domain($domain, $curl = null);
+		$request = Amazon::SDB()->create_domain(FlexSDB::prefix().$domain, $curl = null);
 		
 		// echo Kohana::debug($request);
 		
@@ -137,11 +158,13 @@ abstract class FlexSDB_Core{
 		echo Kohana::debug($response);
 		
 	}
+	
+	
 	
 	public static function list_domains(){
 
 		$opt = array();
-		$opt['MaxNumberOfDomains'] = 2; // 1 to 100
+		// $opt['MaxNumberOfDomains'] = 2; // 1 to 100
 		// $opt['NextToken'] = ''; // optional
 		// $opt['returnCurlHandle'] = false; 
 

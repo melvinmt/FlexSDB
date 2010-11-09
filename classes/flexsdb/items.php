@@ -14,7 +14,7 @@ class FlexSDB_Items implements Iterator, ArrayAccess{
 		if(count($items) > 0){
 			
 			foreach ($items as $itemName => $values){
-				$this->items[] = new FlexSDB_Item($domain, $itemName, $values);
+				$this->items[] = new FlexSDB_Item(FlexSDB::prefix().$domain, $itemName, $values);
 			}
 			
 			$this->array = array_values($items);
