@@ -11,8 +11,9 @@ class FlexSDB_Item implements ArrayAccess{
 	
 	public function __construct($domain, $itemName, array $values = array()){
 		
-		if(strpos($domain, FlexSDB::prefix()) == false){
+		if(stripos($domain, FlexSDB::prefix()) === false){
 			$this->domain = FlexSDB::prefix().$domain;
+			
 		}else{
 			$this->domain = $domain;
 		}
