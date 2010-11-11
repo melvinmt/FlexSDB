@@ -11,12 +11,22 @@ class FlexSDB_Item implements ArrayAccess{
 	
 	public function __construct($domain, $itemName, array $values = array()){
 		
-		$this->domain = $domain;
+		if(strpos($domain, FlexSDB::prefix()) == false){
+			$this->domain = FlexSDB::prefix().$domain;
+		}else{
+			$this->domain = $domain;
+		}
 		$this->itemName = $itemName;
 		
 		if(!empty($values)){
 			$this->multiset($values);
 		}	
+	}
+	
+	public function set_domain($domain){
+		
+		return (bool) $this->domain = FlexSDB::prefix().$domain;
+		
 	}
 	
 	public function save(){	
