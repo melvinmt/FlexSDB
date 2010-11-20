@@ -5,6 +5,7 @@ class FlexSDB_Item implements ArrayAccess{
 	private $domain;
 	private $itemName;
 	private $data = array();
+	private $_data = array();
 	private $current_state = NULL;
 	private $states = NULL;
 	private $delete_attributes = array();
@@ -34,12 +35,12 @@ class FlexSDB_Item implements ArrayAccess{
 		
 		$this->states[] = clone $this;
 		$this->current_state = count($this->states) - 1;
-		
+				
 		FlexSDB::handle(Amazon::SDB()->put_attributes($this->domain, $this->itemName, $this->data, $overwrite = true, $returncurl = true), $this->itemName, $this->data, $this->domain);
 				
 		if(!empty($this->delete_attributes)){
 					
-			FlexSDB::handle(Amazon::SDB()->delete_attributes($this->domain, $this->itemName, array_unique($this->delete_attributes), $returncurl = true), $this->itemName.'_delete');
+			FlexSDB::handle(Amazon::SDB()->delete_attributes($this->domain, $this->itemName, array_keys($this->delete_attributes), $returncurl = true), $this->itemName.'_delete');
 
 		}
 		
@@ -163,8 +164,41 @@ class FlexSDB_Item implements ArrayAccess{
 	
 	public function __unset($name){
 		
+		if(!isset($this->data[$name])){
+			
+			if($this->__unset_array($name)){
+				
+				return NULL;
+			}
+		}
+		
+		$this->delete_attributes[$name] = true;
  		unset($this->data[$name]);
 	}
+	
+	private function __unset_array($name){
+		
+		// check for multidimensional field
+		if(isset($this->data['___'.$name])){
+			
+			foreach ($this->data as $key => $value){
+				
+				if(strpos($key, '__'.$name) === 0){
+					
+					unset($this->data[$key]);
+					$this->delete_attributes[$key] = true;
+				}
+				
+			}
+			
+			unset($this->data['___'.$name]);
+			$this->delete_attributes['___'.$name] = true;
+			
+			return true;
+		}
+		
+	}
+	
 	
 	public function __get($name){
 		
@@ -222,10 +256,11 @@ class FlexSDB_Item implements ArrayAccess{
 		}
 	}
 	
+
 	public function __set($name, $value){
 		
 		if(count($this->data) < 256){
-			
+						
 			// check if array is multidimensional
 			
 			if(is_array($value)){
@@ -237,10 +272,16 @@ class FlexSDB_Item implements ArrayAccess{
 						// multidimensional!
 						
 						$vars = FlexSDB::explode($name, $value);
-
+												
+						// remove eventual existing array
+						$this->__unset_array($name);
+						
 						foreach ($vars as $k2 => $v2){
-
-							$this->$k2 = $v2;
+							
+							if(isset($this->delete_attributes[$k2])){
+								unset($this->delete_attributes[$k2]);
+							}
+							$this->{$k2} = $v2;
 
 						}
 						
@@ -251,10 +292,17 @@ class FlexSDB_Item implements ArrayAccess{
 						// multidimensional!
 						
 						$vars = FlexSDB::explode($name, $value);
+						
+						
+						// remove eventual existing array
+						$this->__unset_array($name);
 
 						foreach ($vars as $k2 => $v2){
-
-							$this->$k2 = $v2;
+							
+							if(isset($this->delete_attributes[$k2])){
+								unset($this->delete_attributes[$k2]);
+							}
+							$this->{$k2} = $v2;
 
 						}
 						
@@ -267,7 +315,6 @@ class FlexSDB_Item implements ArrayAccess{
 			}	
 				
 			if($value === NULL){
-				$this->delete_attributes[] = $name;
 				unset($this->{$name});
 				return  NULL;
 			}
@@ -275,6 +322,13 @@ class FlexSDB_Item implements ArrayAccess{
 			$setval = $this->setval($value);
 			
 			if($setval !== NULL){
+								
+				// remove eventual existing array
+				$this->__unset_array($name);
+				
+				if(isset($this->delete_attributes[$name])){
+					unset($this->delete_attributes[$name]);
+				}
 				
 				return $this->data[$name] = $setval;
 				
@@ -282,6 +336,7 @@ class FlexSDB_Item implements ArrayAccess{
 				
 				if(isset($this->$name)){
 					unset($this->$name);
+					return NULL;
 				}
 				
 			}

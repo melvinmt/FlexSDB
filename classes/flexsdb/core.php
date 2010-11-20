@@ -59,7 +59,7 @@ abstract class FlexSDB_Core{
 		}
 		
 		// add debug
-		FlexSDB::add_debug(array('type' => 'handle', 'curl' => $callback, 'key' => $key, 'data' => $data, 'domain' => FlexSDB::prefix().$domain ));
+		FlexSDB::add_debug(array('type' => 'handle', 'curl' => $callback, 'key' => $key, 'data' => $data, 'domain' => $domain ));
 		
 		// Zeelot event
 		Event::add('system.shutdown', array('FlexSDB', 'exec_handles'));		
