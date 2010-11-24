@@ -28,7 +28,7 @@ class FlexSDB_Query{
 		}
 	}
 	
-	public function consistent($consistent){
+	public function consistent($consistent = true){
 		
 		$this->consistent = (bool) $consistent;
 		
