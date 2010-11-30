@@ -101,22 +101,21 @@ abstract class FlexSDB_Core{
 		  	
 			$execs = curl::multi_exec(self::$handles);
 
-		}
-		
-		$end_time = microtime(true);
+			$end_time = microtime(true);
 				
-		$exec_time = $end_time - $start_time;
+			$exec_time = $end_time - $start_time;
 		
-		if(self::$show_debug){
-			echo Kohana::debug(array('type' => 'all_handles', 'exec_time' => $exec_time.' s'));
+			if(self::$show_debug){
+				echo Kohana::debug(array('type' => 'all_handles', 'exec_time' => $exec_time.' s'));
 			
-		    echo Kohana::debug($execs);
+			    echo Kohana::debug($execs);
+			}
+		
+			// empty handles
+			self::$handles = array();
+		
+			return $execs;
 		}
-		
-		// empty handles
-		self::$handles = array();
-		
-		return $execs;
 		
 	}
 	
