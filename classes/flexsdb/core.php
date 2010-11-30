@@ -5,7 +5,7 @@ abstract class FlexSDB_Core{
 	protected static $handles = array();
 	protected static $debug = array();
 	protected static $show_debug = false;
-	protected static $prefix = NULL;
+	public static $prefix = NULL;
 	
 	public static function prefix(){
 		
@@ -112,6 +112,9 @@ abstract class FlexSDB_Core{
 			
 		    echo Kohana::debug($execs);
 		}
+		
+		// empty handles
+		self::$handles = array();
 		
 		return $execs;
 		
