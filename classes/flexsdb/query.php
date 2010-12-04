@@ -20,13 +20,27 @@ class FlexSDB_Query{
 	public $response;
 	public $sql;
 	public $consistent = false;
+	public $profiler = array();
 	
 	public function __construct($domain = NULL){
 		
 		if($domain != NULL){
 			$this->domain = $domain;
 		}
+		
+		$this->profiler[] = Profiler::start(__CLASS__, 'TOTAL');
 	}
+	
+	public function __destruct(){
+		
+		if(isset($this->profiler) AND !empty($this->profiler) AND is_array($this->profiler)){
+			
+			foreach ($this->profiler as $profiler){
+				Profiler::stop($profiler);
+			}
+		}
+		
+	}	
 	
 	public function consistent($consistent = true){
 		
@@ -340,6 +354,8 @@ class FlexSDB_Query{
 		}
 		
 		$this->sql = trim(str_replace('  ', ' ', $this->sql));
+		
+		$this->profiler[] = Profiler::start($this->sql, __CLASS__);
 		
 		$cache_key = 'FlexSDB_Query::'.sha1($this->sql.json_encode($this->all_opts).json_encode($this->all));
 		
