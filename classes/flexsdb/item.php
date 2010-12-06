@@ -33,7 +33,7 @@ class FlexSDB_Item implements ArrayAccess{
 	
 	public function save(){	
 		
-		$this->states[] = clone $this;
+		// $this->states = clone $this;
 		$this->current_state = count($this->states) - 1;
 				
 		FlexSDB::handle(Amazon::SDB()->put_attributes($this->domain, $this->itemName, $this->data, $overwrite = true, $returncurl = true), $this->itemName, $this->data, $this->domain);
