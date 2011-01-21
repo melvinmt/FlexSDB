@@ -209,7 +209,7 @@ class FlexSDB_Item implements ArrayAccess{
 			
 			foreach ($this->data[$name] as $value){
 			
-				if(preg_match('/^([0-9]) (.*)/', $value, $matches) AND isset($matches[0])){
+				if(preg_match('/^([0-9]) (.*)/sm', $value, $matches) AND isset($matches[0])){
 
 					if(isset($longtext['sum_check'])){
 
@@ -233,7 +233,6 @@ class FlexSDB_Item implements ArrayAccess{
 				if($sum_check === $i2){
 
 					return FlexSDB_Strings::implode($longtext['strings']);
-					
 				}else{
 				
 					return $this->data[$name];

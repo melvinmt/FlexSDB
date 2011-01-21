@@ -70,7 +70,7 @@ class FlexSDB_Strings{
 			
 			foreach($data as $value){
 		
-				if(preg_match("/^(\d+)/s", $value, $match)){
+				if(preg_match("/^(\d+)/sm", $value, $match)){
 				
 					$key = $match[0];
 				
