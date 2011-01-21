@@ -6,7 +6,7 @@ class FlexSDB_Item implements ArrayAccess{
 	private $itemName;
 	private $data = array();
 	private $_data = array();
-	private $current_state = NULL;
+	private $current_state = 1;
 	private $states = NULL;
 	private $delete_attributes = array();
 	
@@ -34,7 +34,7 @@ class FlexSDB_Item implements ArrayAccess{
 	public function save(){	
 		
 		// $this->states = clone $this;
-		$this->current_state = count($this->states) - 1;
+		$this->current_state = count($this->states);
 				
 		FlexSDB::handle(Amazon::SDB()->put_attributes($this->domain, $this->itemName, $this->data, $overwrite = true, $returncurl = true), $this->itemName, $this->data, $this->domain);
 				
@@ -233,6 +233,7 @@ class FlexSDB_Item implements ArrayAccess{
 				if($sum_check === $i2){
 
 					return FlexSDB_Strings::implode($longtext['strings']);
+					
 				}else{
 				
 					return $this->data[$name];

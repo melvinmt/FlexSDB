@@ -27,6 +27,8 @@ class FlexSDB_Response {
 		$this->size = FlexSDB_Strings::bytesConvert($obj->header['_info']['size_download']);
 		$this->single = $single;
 		
+		// debug($obj);
+		
 		// if status is OK
 		if($this->status === 200){
 			
@@ -95,6 +97,8 @@ class FlexSDB_Response {
 		unset($this->longtexts);
 		
 		$this->count = count($this->body);
+		
+		// debug($this);
 	}
 	
 	private function add_item(SimpleXMLElement $item){
@@ -119,6 +123,8 @@ class FlexSDB_Response {
 		}
 		
 		// check if longtexts fields match the sum_check, implode them and update contents
+		
+		
 		foreach($this->longtexts as $long_itemName => $long_item){
 			
 			foreach ($long_item as $long_key => $long_field){
@@ -145,7 +151,9 @@ class FlexSDB_Response {
 		$value = FlexSDB_Strings::decode_val($attribute->Value); // converts numeric values to floats and simple xml to strings
 		
 		// check for longtext format
-		if(preg_match('/^([0-9]) (.*)/', $value, $matches) AND isset($matches[0])){
+		if(preg_match('/^([0-9]) (.*)/sm', $value, $matches) AND isset($matches[0])){
+			
+			// debug($matches);
 			
 			if(isset($this->longtexts[$itemName][$key]['sum_check'])){
 				
