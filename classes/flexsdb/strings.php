@@ -6,7 +6,7 @@ class FlexSDB_Strings{
 		
 		$value = strval($value);
 		
-		if(is_numeric($value)){
+		if(is_numeric($value) AND $value < PHP_INT_MAX){
 			
 			return (double) $value;
 
