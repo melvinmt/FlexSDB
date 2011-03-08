@@ -8,7 +8,7 @@ class FlexSDB_Strings{
 		
 		if(is_numeric($value)){
 			
-			if($value < PHP_INT_MAX){
+			if($value < 100000000000){
 				return (double) $value;
 			}else{
 				return preg_replace("^\.\d{6}^", '', $value);
